@@ -1,6 +1,6 @@
 gsap.registerPlugin(ScrollTrigger);
 
-const cards = gsap.utils.toArray(".kf-card");
+const kfCards = gsap.utils.toArray(".kf-card");
 const dots = gsap.utils.toArray(".kf-pagination .dot");
 
 const tl = gsap.timeline({
@@ -16,27 +16,55 @@ const tl = gsap.timeline({
   }
 });
 
-// 카드 애니메이션 정의
-cards.forEach((card, i) => {
-  // 카드 등장
+// kf-card 애니메이션
+kfCards.forEach((card, i) => {
   tl.fromTo(card,
-    { opacity: 0, y: 40 },
-    { opacity: 1, y: 0, duration: 1 }
+    { opacity: 0, y: 150 },
+    { opacity: 1, y: 0, duration: 1.9, ease: "power4.out" }
   );
 
-  // 다음 카드 전환
-  if (i < cards.length - 1) {
-    tl.to(card, { opacity: 0, y: -40, duration: 1 }, "+=0.5");
+  if (i < kfCards.length - 1) {
+    tl.to(card,
+      { opacity: 0, y: -130, duration: 1.6, ease: "power2.inOut" },
+      "+=1.0"
+    );
   }
 });
 
-// 📌 핵심: progress 기반 페이지네이션 업데이트
+// 페이지네이션
 function updatePagination(progress) {
-  const index = Math.floor(progress * cards.length);
+  const total = kfCards.length;
+  const index = Math.floor(progress * total);
+  const safeIndex = Math.min(index, total - 1);
 
   dots.forEach(dot => dot.classList.remove("active"));
-
-  // index가 카드 수를 넘어가지 않도록 clamp
-  const safeIndex = Math.min(index, cards.length - 1);
   dots[safeIndex].classList.add("active");
 }
+
+// 마우스감속//
+const lenis = new Lenis({
+  smooth: true,
+  lerp: 0.12,   // 감속 강도 (0.05~0.12 추천)
+  wheelMultiplier: 0.9
+});
+
+function raf(time) {
+  lenis.raf(time);
+  requestAnimationFrame(raf);
+}
+
+requestAnimationFrame(raf);
+
+// ScrollTrigger 연동
+lenis.on('scroll', ScrollTrigger.update);
+
+gsap.to(".sec-1", {
+  backgroundColor: "#ffffff",
+  scrollTrigger: {
+    trigger: ".sec-2",
+    start: "top bottom",    // sec-2가 화면 아래에 닿기 시작할 때
+    end: "top center",      // sec-2가 화면 중앙에 올 때
+    scrub: true
+  }
+});
+
